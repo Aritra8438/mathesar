@@ -7,7 +7,7 @@
   import {
     requiredField,
     makeForm,
-    FormSubmit,
+    FormSubmitWithCatch,
     optionalField,
     comboMustBeEqual,
   } from '@mathesar/components/form';
@@ -149,9 +149,8 @@
 
   {#if showChangePasswordForm}
     <div class="submit-section">
-      <FormSubmit
+      <FormSubmitWithCatch
         {form}
-        catchErrors
         onProceed={updatePassword}
         onCancel={() => {
           showChangePasswordForm = false;

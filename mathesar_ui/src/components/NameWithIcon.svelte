@@ -24,7 +24,7 @@
           <Icon {...icon} size="min(1em, 0.75em + 0.25rem)" />
         {/each}
       {/if}
-    </span>&nbsp;<span class="name">
+    </span>&nbsp;<span class="name" style="white-space: normal">
       {#if name}
         {name}
       {:else}
@@ -50,6 +50,7 @@
   }
   .name-with-icon.boxed .icon {
     display: inline-flex;
+    height: 1.2em;
     border-radius: 0.25em;
     padding: 0.2em;
     background: var(--icon-color, currentcolor);

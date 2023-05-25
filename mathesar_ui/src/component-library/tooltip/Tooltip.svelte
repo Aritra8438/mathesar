@@ -2,15 +2,9 @@
   import AttachableDropdown from '@mathesar-component-library-dir/dropdown/AttachableDropdown.svelte';
 
   export let tooltipClass = '';
-  /** When true, the tooltip will remain open when hovered */
-  export let allowHover = false;
 
   let trigger: HTMLElement | undefined;
-  let triggerIsHovered = false;
-  let contentIsHovered = false;
-  let timeout: number | undefined;
-
-  $: isOpen = triggerIsHovered || (allowHover && contentIsHovered);
+  let isContentShown = false;
 </script>
 
 <span
@@ -18,15 +12,10 @@
   aria-label="Help"
   {...$$restProps}
   on:mouseenter={() => {
-    window.clearTimeout(timeout);
-    triggerIsHovered = true;
+    isContentShown = true;
   }}
   on:mouseleave={() => {
-    // Keep the dropdown open for a short time after the user leaves the trigger
-    // so that they can move their mouse to the dropdown without it closing.
-    timeout = window.setTimeout(() => {
-      triggerIsHovered = false;
-    }, 100);
+    isContentShown = false;
   }}
 >
   <slot name="trigger" />
@@ -34,15 +23,9 @@
 
 <AttachableDropdown
   {trigger}
-  {isOpen}
+  isOpen={isContentShown}
   placements={['top', 'right', 'bottom', 'left']}
   class="tooltip {tooltipClass}"
-  on:mouseenter={() => {
-    contentIsHovered = true;
-  }}
-  on:mouseleave={() => {
-    contentIsHovered = false;
-  }}
 >
   <slot name="content" />
 </AttachableDropdown>

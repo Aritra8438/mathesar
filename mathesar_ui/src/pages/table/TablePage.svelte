@@ -12,7 +12,6 @@
   import ActionsPane from '@mathesar/systems/table-view/actions-pane/ActionsPane.svelte';
   import { makeSimplePageTitle } from '@mathesar/pages/pageTitleUtils';
   import LayoutWithHeader from '@mathesar/layouts/LayoutWithHeader.svelte';
-  import { setNewImperativeFilterControllerInContext } from './ImperativeFilterController';
 
   const metaSerializationQueryKey = 'q';
 
@@ -21,7 +20,6 @@
     // below.
     undefined as unknown as TabularData,
   );
-  setNewImperativeFilterControllerInContext();
 
   export let table: TableEntry;
 

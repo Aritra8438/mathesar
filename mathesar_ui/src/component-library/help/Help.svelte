@@ -4,7 +4,7 @@
   import { iconHelp } from '@mathesar-component-library-dir/common/icons';
 </script>
 
-<Tooltip aria-label="Help" class="help-trigger" allowHover>
+<Tooltip aria-label="Help" class="help-trigger">
   <Icon slot="trigger" {...iconHelp} />
   <slot slot="content" />
 </Tooltip>

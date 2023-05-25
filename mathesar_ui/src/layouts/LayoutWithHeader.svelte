@@ -41,7 +41,7 @@
       flex-grow: 1;
 
       &.restrict-width {
-        max-width: var(--max-layout-width);
+        max-width: var(--max-layout-width, 54rem);
         margin-left: auto;
         margin-right: auto;
         width: 100%;
@@ -60,7 +60,8 @@
     }
   }
 
+  // TODO: Remove default styling properties on layout components
   .app-layout:not(.fit-viewport) .app-layout-content {
-    padding: var(--page-padding);
+    padding: 0 var(--page-padding);
   }
 </style>

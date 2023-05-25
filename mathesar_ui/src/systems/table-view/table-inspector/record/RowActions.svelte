@@ -6,7 +6,6 @@
     iconExternalLink,
   } from '@mathesar/component-library';
   import { iconDeleteMajor, iconRecord } from '@mathesar/icons';
-  import { getRecordDeleteMessage } from '@mathesar/pages/record/recordHelp';
   import { confirmDelete } from '@mathesar/stores/confirmation';
   import { storeToGetRecordPageUrl } from '@mathesar/stores/storeBasedUrls';
   import type {
@@ -25,18 +24,13 @@
   export let canEditTableRecords: boolean;
 
   async function handleDeleteRecords() {
-    const confirmationTitle = labeledCount(selectedRowIndices, 'records', {
-      countWhenSingular: 'hidden',
-      casing: 'title',
-    });
     void confirmDelete({
-      identifierType: confirmationTitle,
-      body: getRecordDeleteMessage(selectedRowIndices),
+      identifierType: 'Row',
       onProceed: () => recordsData.deleteSelected(selectedRowIndices),
       onError: (e) => toast.fromError(e),
       onSuccess: () => {
         toast.success({
-          title: `${confirmationTitle} deleted successfully!`,
+          title: 'Row deleted successfully!',
         });
         selection.resetSelection();
       },
@@ -84,7 +78,7 @@
     </AnchorButton>
   {/if}
   {#if showDeleteRecordButton}
-    <Button on:click={handleDeleteRecords}>
+    <Button appearance="outline-primary" on:click={handleDeleteRecords}>
       <Icon {...iconDeleteMajor} />
       <span>
         Delete {labeledCount(selectedRowIndices, 'records', {

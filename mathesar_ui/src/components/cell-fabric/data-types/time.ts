@@ -5,7 +5,10 @@ import {
   DateTimeFormatter,
   DateTimeSpecification,
 } from '@mathesar/utils/date-time';
-import type { DateTimeCellExternalProps } from './components/typeDefinitions';
+import type {
+  DateTimeCellExternalProps,
+  CellValueFormatter,
+} from './components/typeDefinitions';
 import type { CellComponentFactory, CellColumnLike } from './typeDefinitions';
 import DateTimeCell from './components/date-time/DateTimeCell.svelte';
 import DateTimeInput from './components/date-time/DateTimeInput.svelte';
@@ -65,9 +68,8 @@ const timeType: CellComponentFactory = {
   getDisplayFormatter(
     column: TimeLikeColumn,
     config?: { supportTimeZone?: boolean },
-  ) {
-    const supportTimeZone = config?.supportTimeZone ?? false;
-    return (v) => getProps(column, supportTimeZone).formatForDisplay(String(v));
+  ): CellValueFormatter<string> {
+    return getProps(column, config?.supportTimeZone ?? false).formatForDisplay;
   },
 };
 

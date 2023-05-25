@@ -2,7 +2,6 @@
 This script installs functions and types for Mathesar onto the configured DB.
 """
 import getopt
-import os
 import sys
 
 import django
@@ -20,7 +19,6 @@ def main():
     for (opt, value) in opts:
         if (opt == "-s") or (opt == "--skip-confirm"):
             skip_confirm = True
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
     django.setup()
     management.call_command('migrate')
     debug_mode = decouple_config('DEBUG', default=False, cast=bool)
@@ -28,8 +26,7 @@ def main():
     if not debug_mode:
         management.call_command('collectstatic', '--noinput', '--clear')
     print("------------Setting up User Databases------------")
-    django_db_key = decouple_config('DJANGO_DATABASE_KEY', default="default")
-    user_databases = [key for key in settings.DATABASES if key != django_db_key]
+    user_databases = [key for key in settings.DATABASES if key != "default"]
     for database_key in user_databases:
         install_on_db_with_key(database_key, skip_confirm)
 

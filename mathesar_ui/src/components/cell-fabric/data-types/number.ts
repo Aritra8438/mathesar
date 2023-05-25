@@ -1,16 +1,19 @@
-import {
-  isDefinedNonNullable,
-  StringifiedNumberFormatter,
-} from '@mathesar-component-library';
-import type { ComponentAndProps } from '@mathesar-component-library/types';
 import type {
   NumberColumn,
   NumberDisplayOptions,
   NumberFormat,
 } from '@mathesar/api/types/tables/columns';
+import {
+  StringifiedNumberFormatter,
+  isDefinedNonNullable,
+} from '@mathesar-component-library';
+import type { ComponentAndProps } from '@mathesar-component-library/types';
 import NumberCell from './components/number/NumberCell.svelte';
 import NumberCellInput from './components/number/NumberCellInput.svelte';
-import type { NumberCellExternalProps } from './components/typeDefinitions';
+import type {
+  CellValueFormatter,
+  NumberCellExternalProps,
+} from './components/typeDefinitions';
 import type { CellComponentFactory } from './typeDefinitions';
 
 // prettier-ignore
@@ -106,7 +109,7 @@ function getProps(
   };
 }
 
-const numberType: CellComponentFactory = {
+const numberType: CellComponentFactory<string> = {
   get(
     column: NumberColumn,
     config?: Config,
@@ -127,8 +130,11 @@ const numberType: CellComponentFactory = {
     };
   },
 
-  getDisplayFormatter(column: NumberColumn, config?: Config) {
-    return (v) => getProps(column, config).formatForDisplay(String(v));
+  getDisplayFormatter(
+    column: NumberColumn,
+    config?: Config,
+  ): CellValueFormatter<string> {
+    return getProps(column, config).formatForDisplay;
   },
 };
 

@@ -22,7 +22,7 @@
   import type { ReadableMapLike } from '@mathesar/typeUtils';
   import type { ConstraintType } from '@mathesar/api/types/tables/constraints';
   import type { FilterEntryColumnLike } from './types';
-  import { FILTER_INPUT_CLASS, validateFilterEntry } from './utils';
+  import { validateFilterEntry } from './utils';
 
   type T = $$Generic;
   type ColumnLikeType = FilterEntryColumnLike & T;
@@ -93,9 +93,7 @@
     return '';
   }
 
-  function getColumnConstraintTypeFromColumnId(
-    _columnId?: ColumnLikeType['id'],
-  ) {
+  function getColumnConstraintTypeByColumnId(_columnId?: ColumnLikeType['id']) {
     if (_columnId) {
       const column = columns.get(_columnId);
       if (column) {
@@ -219,7 +217,7 @@
           type: columnInfo?.column.type ?? 'unknown',
           type_options: columnInfo?.column.type_options ?? null,
           display_options: columnInfo?.column.display_options ?? null,
-          constraintsType: getColumnConstraintTypeFromColumnId(option),
+          constraintsType: getColumnConstraintTypeByColumnId(option),
         }}
       />
     </Select>
@@ -244,7 +242,7 @@
             showError = true;
           }}
           on:change={onValueChangeFromUser}
-          class={FILTER_INPUT_CLASS}
+          class="filter-input"
           hasError={showError && !isValid}
           recordSummary={recordSummaries
             .get(String(columnIdentifier))

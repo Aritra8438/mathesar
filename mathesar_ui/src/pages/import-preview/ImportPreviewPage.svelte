@@ -326,10 +326,10 @@
 
 <LayoutWithHeader
   cssVariables={{
-    '--max-layout-width': 'var(--max-layout-width-data-pages)',
+    '--max-layout-width': '65.357rem',
     '--layout-background-color': 'var(--sand-200)',
     '--inset-page-section-padding': 'var(--size-xx-large)',
-    '--page-padding': 'var(--outer-page-padding-for-inset-page)',
+    '--inset-layout-padding': '0',
   }}
 >
   <div class="table-preview-confirmation">
@@ -488,6 +488,10 @@
   .table-preview-confirmation {
     --sheet-header-height: 5.25rem;
     position: relative;
+
+    h1 {
+      margin: 1em 0;
+    }
 
     h2 {
       margin: 0;

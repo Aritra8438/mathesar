@@ -20,7 +20,7 @@
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   $: inputComponent = input?.component ?? (TextInput as typeof SvelteComponent);
   $: inputComponentProps = input?.props ?? {};
-  $: ({ showsError, disabled } = field);
+  $: ({ showsError } = field);
 </script>
 
 <FieldLayout>
@@ -32,7 +32,6 @@
         this={inputComponent}
         bind:value={$field}
         hasError={$showsError}
-        disabled={$disabled}
         {...inputComponentProps}
       />
     </LabeledInput>
@@ -41,7 +40,6 @@
       this={inputComponent}
       bind:value={$field}
       hasError={$showsError}
-      disabled={$disabled}
       {...inputComponentProps}
     >
       <slot />

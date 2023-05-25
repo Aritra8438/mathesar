@@ -175,7 +175,7 @@ export class ToastController {
 export type ToastDetail = Partial<ToastEntryProps> | string;
 export type ToastShowFn = (d: ToastDetail) => ToastEntryController;
 
-export interface MakeToast {
+interface MakeToast {
   entries: Readable<ToastEntry[]>;
   info: ToastShowFn;
   success: ToastShowFn;

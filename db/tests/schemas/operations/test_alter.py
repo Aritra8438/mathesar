@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy import func, select
-from psycopg.errors import InvalidSchemaName
+from sqlalchemy.exc import ProgrammingError
 
 from db.schemas import utils as schema_utils
 from db.schemas.operations.alter import comment_on_schema, rename_schema
@@ -26,7 +26,7 @@ def test_rename_schema(engine):
 
 
 def test_rename_schema_missing(engine):
-    with pytest.raises(InvalidSchemaName):
+    with pytest.raises(ProgrammingError):
         rename_schema("test_rename_schema_missing", engine, "new_name")
 
 

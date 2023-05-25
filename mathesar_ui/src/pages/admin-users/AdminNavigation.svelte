@@ -1,6 +1,7 @@
 <script lang="ts">
   import { active } from 'tinro';
-  import { Menu, MenuItemContents } from '@mathesar-component-library';
+
+  import { Icon } from '@mathesar-component-library';
   import { iconSettingsMajor, iconMultipleUsers } from '@mathesar/icons';
   import {
     ADMIN_UPDATE_PAGE_URL,
@@ -13,40 +14,51 @@
   $: upgradable = $releaseDataStore?.value?.upgradeStatus === 'upgradable';
 </script>
 
-<div class="admin-navigation">
-  <Menu>
-    <a
-      role="menuitem"
-      href={ADMIN_UPDATE_PAGE_URL}
-      class="menu-item menu-item-link"
-      use:active
-    >
-      <MenuItemContents
-        icon={iconSettingsMajor}
-        hasNotificationDot={upgradable}
-      >
-        Update
-      </MenuItemContents>
+<ul role="menu" class="admin-navigation-menu">
+  <li role="menuitem">
+    <a href={ADMIN_UPDATE_PAGE_URL} use:active class="passthrough">
+      <Icon {...iconSettingsMajor} hasNotificationDot={upgradable} />
+      <span>Update</span>
     </a>
-    <a
-      role="menuitem"
-      href={ADMIN_USERS_PAGE_URL}
-      class="menu-item menu-item-link"
-      use:active
-    >
-      <MenuItemContents icon={iconMultipleUsers}>Users</MenuItemContents>
+  </li>
+  <li role="menuitem">
+    <a href={ADMIN_USERS_PAGE_URL} use:active class="passthrough">
+      <Icon {...iconMultipleUsers} />
+      <span>Users</span>
     </a>
-  </Menu>
-</div>
+  </li>
+</ul>
 
 <style lang="scss">
-  .admin-navigation {
-    font-size: var(--text-size-large);
-    --min-width: 100%;
-    --Menu__item-border-radius: var(--border-radius-m);
-    --Menu__item-hover-background: var(--sand-100);
-    --Menu__item-active-background: var(--sand-200);
-    --Menu__item-active-hover-background: var(--sand-200);
-    --Menu__item-focus-outline-color: var(--sand-300);
+  .admin-navigation-menu {
+    list-style-type: none;
+    padding-right: 1rem;
+    padding-left: 0;
+
+    li {
+      font-size: var(--text-size-large);
+      margin-top: 0.15rem;
+      position: relative;
+    }
+
+    a {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem;
+      border-radius: var(--border-radius-m);
+      cursor: pointer;
+
+      > :global(* + *) {
+        margin-left: 0.5rem;
+      }
+
+      &:hover {
+        background-color: var(--sand-200);
+      }
+
+      &:global(.active) {
+        background-color: var(--sand-200);
+      }
+    }
   }
 </style>

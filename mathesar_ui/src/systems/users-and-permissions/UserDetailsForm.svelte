@@ -3,23 +3,23 @@
   import type { UnionToIntersection } from 'type-fest';
 
   import {
-    PasswordInput,
     TextInput,
+    PasswordInput,
     hasProperty,
   } from '@mathesar-component-library';
-  import userApi, { type User } from '@mathesar/api/users';
-  import { extractDetailedFieldBasedErrors } from '@mathesar/api/utils/errors';
   import {
-    FormSubmit,
-    isEmail,
-    makeForm,
-    matchRegex,
-    maxLength,
     optionalField,
     requiredField,
+    makeForm,
+    FormSubmitWithCatch,
+    validateLength,
+    matchRegexAllowNullUndefined,
+    validateEmailAllowEmpty,
     type FieldStore,
   } from '@mathesar/components/form';
+  import userApi, { type User } from '@mathesar/api/users';
   import { iconSave, iconUndo } from '@mathesar/icons';
+  import { extractDetailedFieldBasedErrors } from '@mathesar/api/utils/errors';
   import { getUserProfileStoreFromContext } from '@mathesar/stores/userProfile';
   import SelectUserType from './SelectUserType.svelte';
   import UserFormInput from './UserFormInput.svelte';
@@ -34,13 +34,16 @@
   $: isNewUser = user === undefined;
   $: fullName = optionalField(user?.full_name ?? '');
   $: username = requiredField(user?.username ?? '', [
-    maxLength(150, 'Username cannot be longer than 150 characters.'),
-    matchRegex(
+    validateLength(
+      150,
+      'Username should be lesser than or equal to 150 characters.',
+    ),
+    matchRegexAllowNullUndefined(
       /^[A-Za-z0-9_@.+-]*$/,
       'Username can only contain alphanumeric characters, _, @, +, ., and -.',
     ),
   ]);
-  $: email = optionalField(user?.email ?? '', [isEmail()]);
+  $: email = optionalField(user?.email ?? '', [validateEmailAllowEmpty()]);
   $: userType = requiredField<'user' | 'admin' | undefined>(
     user?.is_superuser ? 'admin' : 'user',
   );
@@ -151,9 +154,8 @@
 </div>
 
 <div class="submit-section">
-  <FormSubmit
+  <FormSubmitWithCatch
     {form}
-    catchErrors
     onProceed={saveUser}
     proceedButton={{ label: 'Save', icon: iconSave }}
     cancelButton={{ label: 'Discard Changes', icon: iconUndo }}

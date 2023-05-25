@@ -1,30 +1,28 @@
 <script lang="ts">
   import {
+    CancelOrProceedButtonPair,
     ensureReadable,
+    LabeledInput,
     RadioGroup,
     Spinner,
+    TextInput,
   } from '@mathesar-component-library';
   import type { TableEntry } from '@mathesar/api/types/tables';
-  import {
-    FormSubmit,
-    makeForm,
-    requiredField,
-    uniqueWith,
-    type FilledFormValues,
-  } from '@mathesar/components/form';
-  import Field from '@mathesar/components/form/Field.svelte';
-  import FieldLayout from '@mathesar/components/form/FieldLayout.svelte';
-  import SelectProcessedColumn from '@mathesar/components/SelectProcessedColumn.svelte';
+  import Form from '@mathesar/components/Form.svelte';
+  import FormField from '@mathesar/components/FormField.svelte';
+  import Identifier from '@mathesar/components/Identifier.svelte';
+  import SelectColumn from '@mathesar/components/SelectColumn.svelte';
   import SelectTable from '@mathesar/components/SelectTable.svelte';
-  import TableName from '@mathesar/components/TableName.svelte';
-  import { currentDbAbstractTypes } from '@mathesar/stores/abstract-types';
   import {
+    ColumnsDataStore,
     getTabularDataStoreFromContext,
-    TableStructure,
-    type ProcessedColumn,
   } from '@mathesar/stores/table-data';
+  import type { Column } from '@mathesar/api/types/tables/columns';
   import { importVerifiedTables } from '@mathesar/stores/tables';
+  import { toast } from '@mathesar/stores/toast';
+  import { getErrorMessage } from '@mathesar/utils/errors';
   import { getAvailableName } from '@mathesar/utils/db';
+  import { onMount } from 'svelte';
   import ConstraintNameHelp from './__help__/ConstraintNameHelp.svelte';
 
   export let onClose: (() => void) | undefined = undefined;
@@ -40,144 +38,189 @@
 
   function getSuggestedName(
     _tableName: string,
-    _column: ProcessedColumn | undefined,
+    _column: Column | undefined,
     reservedNames: Set<string>,
   ): string {
-    const desiredName = `FK_${_tableName}_${_column?.column.name ?? ''}`;
+    const desiredName = `FK_${_tableName}_${_column?.name ?? ''}`;
     return getAvailableName(desiredName, reservedNames);
+  }
+
+  function getNameValidationErrors(
+    _namingStrategy: NamingStrategy,
+    _constraintName: string | undefined,
+    _existingConstraintNames: Set<string>,
+  ) {
+    if (_namingStrategy === 'auto') {
+      return [];
+    }
+    if (!_constraintName?.trim()) {
+      return ['Name cannot be empty'];
+    }
+    if (_existingConstraintNames.has(_constraintName?.trim())) {
+      return ['A constraint with that name already exists'];
+    }
+    return [];
+  }
+
+  let baseColumn: Column | undefined;
+  let targetTable: TableEntry | undefined;
+  let targetColumn: Column | undefined;
+  let namingStrategy: NamingStrategy = 'auto';
+  let constraintName: string | undefined;
+
+  function init() {
+    baseColumn = undefined;
+    targetTable = undefined;
+    targetColumn = undefined;
+    namingStrategy = 'auto';
+    constraintName = undefined;
   }
 
   $: constraintsDataStore = $tabularData.constraintsDataStore;
   $: existingConstraintNames = new Set(
     $constraintsDataStore.constraints.map((c) => c.name),
   );
-
-  $: baseColumn = requiredField<ProcessedColumn | undefined>(undefined);
-  $: targetTable = requiredField<TableEntry | undefined>(undefined);
-  $: targetColumn = requiredField<ProcessedColumn | undefined>(undefined);
-  $: namingStrategy = requiredField<NamingStrategy>('auto');
-  $: constraintName = requiredField<string | undefined>(undefined, [
-    uniqueWith(existingConstraintNames),
-  ]);
-  $: form = makeForm({
-    baseColumn,
-    targetTable,
-    targetColumn,
-    namingStrategy,
-    ...($namingStrategy === 'auto' ? {} : { constraintName }),
-  });
-
   $: tables = [...$importVerifiedTables.values()];
   $: baseTableName = $importVerifiedTables.get($tabularData.id)?.name ?? '';
-  $: ({ processedColumns } = $tabularData);
-  $: baseTableColumns = [...$processedColumns.values()];
-
-  $: targetTableStructure = $targetTable
-    ? new TableStructure({
-        id: $targetTable.id,
-        abstractTypesMap: $currentDbAbstractTypes.data,
-      })
+  $: columnsDataStore = $tabularData.columnsDataStore;
+  $: baseTableColumns = columnsDataStore.columns;
+  $: targetTableColumnsStore = targetTable
+    ? new ColumnsDataStore({ parentId: targetTable.id })
     : undefined;
-  $: targetTableStructureIsLoading = ensureReadable(
-    targetTableStructure?.isLoading,
+  $: targetTableColumnsStatus = ensureReadable(
+    targetTableColumnsStore?.fetchStatus,
   );
-  $: targetTableColumnsStore = ensureReadable(
-    targetTableStructure?.processedColumns,
+  $: targetTableColumnsAreLoading =
+    $targetTableColumnsStatus?.state === 'processing';
+  $: targetTableColumns = ensureReadable(
+    targetTableColumnsStore?.columns ?? [],
   );
-  $: targetTableColumnsMap =
-    $targetTableColumnsStore ?? new Map<number, ProcessedColumn>();
-  $: targetTableColumns = [...targetTableColumnsMap.values()];
+  $: nameValidationErrors = getNameValidationErrors(
+    namingStrategy,
+    constraintName,
+    existingConstraintNames,
+  );
+  $: canProceed =
+    !!baseColumn &&
+    !nameValidationErrors.length &&
+    !!targetTable &&
+    !!targetColumn;
 
   function handleNamingStrategyChange() {
     // Begin with a suggested name as the starting value, but only do it when
     // the user switches from 'auto' to 'manual'.
-    $constraintName =
-      $namingStrategy === 'manual'
-        ? getSuggestedName(baseTableName, $baseColumn, existingConstraintNames)
+    constraintName =
+      namingStrategy === 'manual'
+        ? getSuggestedName(baseTableName, baseColumn, existingConstraintNames)
         : undefined;
   }
 
-  async function handleSave(values: FilledFormValues<typeof form>) {
-    await constraintsDataStore.add({
-      columns: [values.baseColumn.id],
-      type: 'foreignkey',
-      name: values.constraintName,
-      referent_table: values.targetTable.id,
-      referent_columns: [values.targetColumn.id],
-    });
-    // Why reset before close when the form is automatically reset during
-    // mount? Because without reset here, there's a weird UI state during the
-    // out-transition of the modal where the constraint name validation shows
-    // an error due to the name being a duplicate at that point.
-    form.reset();
+  async function handleSave() {
+    try {
+      if (!baseColumn) {
+        throw new Error('No base column selected.');
+      }
+      if (!targetTable) {
+        throw new Error('No target table selected.');
+      }
+      if (!targetColumn) {
+        throw new Error('No target column selected.');
+      }
+      await constraintsDataStore.add({
+        columns: [baseColumn.id],
+        type: 'foreignkey',
+        name: constraintName,
+        referent_table: targetTable.id,
+        referent_columns: [targetColumn.id],
+      });
+      // Why init before close when we also init on open? Because without init
+      // there's a weird UI state during the out-transition of the modal where
+      // the constraint name validation shows an error due to the name being a
+      // duplicate at that point.
+      init();
+      onClose?.();
+    } catch (e) {
+      toast.error(`Unable to add constraint. ${getErrorMessage(e)}`);
+    }
+  }
+
+  function handleCancel() {
     onClose?.();
   }
+
+  onMount(() => {
+    init();
+  });
 </script>
 
 <div class="add-new-fk-constraint">
   <span class="title">New Foreign Key Constraint</span>
-
-  <Field
-    field={baseColumn}
-    input={{
-      component: SelectProcessedColumn,
-      props: { columns: baseTableColumns },
-    }}
-    layout="stacked"
-    label="Column in this table which references the target table"
-  />
-
-  <Field
-    field={targetTable}
-    input={{ component: SelectTable, props: { autoSelect: 'clear', tables } }}
-    layout="stacked"
-    label="Target Table"
-  />
-
-  {#if $targetTable}
-    {#if $targetTableStructureIsLoading}
-      <FieldLayout><Spinner /></FieldLayout>
-    {:else}
-      <Field
-        field={targetColumn}
-        input={{
-          component: SelectProcessedColumn,
-          props: { columns: targetTableColumns },
-        }}
-        layout="stacked"
-      >
+  <Form>
+    <FormField>
+      <LabeledInput layout="stacked">
         <span slot="label">
-          Target Column in
-          <TableName table={$targetTable} bold truncate={false} />
-          Table
+          Column in this table which references the target table
         </span>
-      </Field>
+        <SelectColumn columns={$baseTableColumns} bind:column={baseColumn} />
+      </LabeledInput>
+    </FormField>
+
+    <FormField>
+      <LabeledInput label="Target Table" layout="stacked">
+        <SelectTable {tables} bind:value={targetTable} autoSelect="clear" />
+      </LabeledInput>
+    </FormField>
+
+    {#if targetTable}
+      <FormField>
+        {#if targetTableColumnsAreLoading}
+          <Spinner />
+        {:else}
+          <LabeledInput layout="stacked">
+            <span slot="label">
+              Target Column in
+              <Identifier>{targetTable.name}</Identifier>
+              Table
+            </span>
+            <SelectColumn
+              columns={$targetTableColumns}
+              bind:column={targetColumn}
+            />
+          </LabeledInput>
+        {/if}
+      </FormField>
     {/if}
-  {/if}
 
-  <FieldLayout>
-    <RadioGroup
-      options={namingStrategies}
-      bind:value={$namingStrategy}
-      isInline
-      on:change={handleNamingStrategyChange}
-      getRadioLabel={(s) => namingStrategyLabelMap.get(s) ?? ''}
-    >
-      Set Constraint Name <ConstraintNameHelp />
-    </RadioGroup>
-  </FieldLayout>
+    <FormField>
+      <RadioGroup
+        options={namingStrategies}
+        bind:value={namingStrategy}
+        isInline
+        on:change={handleNamingStrategyChange}
+        getRadioLabel={(s) => namingStrategyLabelMap.get(s) ?? ''}
+      >
+        Set Constraint Name <ConstraintNameHelp />
+      </RadioGroup>
+    </FormField>
 
-  {#if $namingStrategy === 'manual'}
-    <Field field={constraintName} layout="stacked" label="Constraint Name" />
-  {/if}
+    {#if namingStrategy === 'manual'}
+      <FormField errors={nameValidationErrors}>
+        <LabeledInput label="Constraint Name" layout="stacked">
+          <TextInput
+            bind:value={constraintName}
+            hasError={nameValidationErrors.length > 0}
+          />
+        </LabeledInput>
+      </FormField>
+    {/if}
+  </Form>
 
-  <FormSubmit
-    {form}
-    catchErrors
+  <CancelOrProceedButtonPair
     onProceed={handleSave}
-    onCancel={onClose}
-    size="small"
+    onCancel={handleCancel}
     proceedButton={{ label: 'Add' }}
+    {canProceed}
+    size="small"
   />
 </div>
 

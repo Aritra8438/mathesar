@@ -11,7 +11,6 @@
   } from '@mathesar/systems/record-selector/RecordSelectorController';
   import { preloadCommonData } from '@mathesar/utils/preloadData';
   import RootRoute from './routes/RootRoute.svelte';
-  import { setNewClipboardHandlerStoreInContext } from './stores/clipboard';
   import { modal } from './stores/modal';
   import { setReleasesStoreInContext } from './stores/releases';
   import ModalRecordSelector from './systems/record-selector/ModalRecordSelector.svelte';
@@ -29,7 +28,6 @@
     // TODO: Throw an application wide error
   }
 
-  const clipboardHandlerStore = setNewClipboardHandlerStoreInContext();
   const recordSelectorModal = modal.spawnModalController();
   const recordSelectorController = new RecordSelectorController({
     onOpen: () => recordSelectorModal.open(),
@@ -37,34 +35,7 @@
     nestingLevel: 0,
   });
   setRecordSelectorControllerInContext(recordSelectorController);
-
-  $: clipboardHandler = $clipboardHandlerStore;
-
-  // Why are we handling clipboard events here?
-  //
-  // We originally implemented the clipboard handler lower down, in the Sheet
-  // component. That worked for Firefox because when the user pressed Ctrl+C the
-  // focused `.cell-wrapper` div node would emit a copy event. However, in
-  // Chrome and Safari, the focused `.cell-wrapper` div node does _not_ emit
-  // copy events! Perhaps that's because it doesn't contain any selected text?
-  // Instead, the copy event gets emitted from `body` in Chrome/Safari.
-  // Clipboard functionality seems inconsistent in subtle ways across browsers.
-  // Make sure to test in all browsers when making changes!
-  //
-  // On a record page with multiple table widgets, we should be able to copy
-  // cells from each table widget, and we should be able to copy plain text on
-  // the page, outside of the sheet. We also need to support copying from the
-  // Data Explorer.
-
-  function handleCopy(e: ClipboardEvent) {
-    if (clipboardHandler) {
-      clipboardHandler.handleCopy(e);
-      e.preventDefault();
-    }
-  }
 </script>
-
-<svelte:body on:copy={handleCopy} />
 
 <ToastPresenter entries={toast.entries} />
 <Confirmation controller={confirmationController} />
@@ -159,19 +130,9 @@
     --cell-border-horizontal: 1px solid var(--slate-200);
     --cell-border-vertical: 1px solid var(--slate-200);
 
-    --page-padding-x: 1em;
-    --page-padding-y: 1em;
-    --page-padding: var(--page-padding-x) var(--page-padding-y);
-
-    --outer-page-padding-for-inset-page: 0;
-    --inset-page-padding: var(--size-xx-large) var(--page-padding-x);
+    --page-padding: 1em;
 
     --max-layout-width: 54rem;
-    // For database page, schema page, and admin pages
-    --max-layout-width-console-pages: 72rem;
-    // For import upload, import preview pages
-    --max-layout-width-data-pages: 67.357rem;
-
     // Setting the header height here
     // since when the header is fixed
     // we can use this variable to add margin-top
@@ -196,18 +157,6 @@
     margin: 0 0 1rem 0;
     font-size: var(--size-xx-large);
     font-weight: 500;
-  }
-
-  a {
-    color: inherit;
-  }
-
-  code {
-    font-family: monospace;
-    font-size: 85%;
-    background: rgba(127, 127, 127, 0.5);
-    padding: 0.2em 0.3em;
-    border-radius: 0.2em;
   }
 
   .block {

@@ -96,6 +96,11 @@
     }
   }
 
+  h1 {
+    font-size: var(--text-size-ultra-large);
+    font-weight: normal;
+  }
+
   .users-list {
     border: 1px solid var(--slate-200);
     border-radius: var(--border-radius-m);

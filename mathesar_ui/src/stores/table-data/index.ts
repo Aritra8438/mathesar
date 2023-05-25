@@ -56,4 +56,3 @@ export {
 export { TableStructure } from './TableStructure';
 export { SearchFuzzy } from './searchFuzzy';
 export { constraintIsFk, findFkConstraintsForColumn } from './constraintsUtils';
-export { type RecordSummariesForSheet } from './record-summaries/recordSummaryUtils';

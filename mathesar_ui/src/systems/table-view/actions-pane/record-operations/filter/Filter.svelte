@@ -1,24 +1,18 @@
 <script lang="ts">
-  import { takeLast } from 'iter-tools';
-  import { onMount } from 'svelte';
-  import { writable, type Writable } from 'svelte/store';
-
+  import { writable } from 'svelte/store';
+  import type { Writable } from 'svelte/store';
   import { Button, Icon } from '@mathesar-component-library';
-  import type { FilterCombination } from '@mathesar/api/types/tables/records';
-  import type { LinkedRecordInputElement } from '@mathesar/components/cell-fabric/data-types/components/linked-record/LinkedRecordUtils';
-  import { validateFilterEntry } from '@mathesar/components/filter-entry';
-  import { FILTER_INPUT_CLASS } from '@mathesar/components/filter-entry/utils';
-  import { iconAddNew } from '@mathesar/icons';
-  import { getImperativeFilterControllerFromContext } from '@mathesar/pages/table/ImperativeFilterController';
   import {
     getTabularDataStoreFromContext,
     type Filtering,
   } from '@mathesar/stores/table-data';
-  import { deepCloneFiltering } from '../utils';
+  import type { FilterCombination } from '@mathesar/api/types/tables/records';
+  import { validateFilterEntry } from '@mathesar/components/filter-entry';
+  import { iconAddNew } from '@mathesar/icons';
   import FilterEntries from './FilterEntries.svelte';
+  import { deepCloneFiltering } from '../utils';
 
   const tabularData = getTabularDataStoreFromContext();
-  const imperativeFilterController = getImperativeFilterControllerFromContext();
 
   export let filtering: Writable<Filtering>;
 
@@ -28,8 +22,6 @@
   // This should be okay since this component is re-created
   // everytime the dropdown reopens.
   const internalFiltering = writable(deepCloneFiltering($filtering));
-
-  let element: HTMLElement;
 
   $: ({ processedColumns } = $tabularData);
   $: filterCount = $internalFiltering.entries.length;
@@ -53,20 +45,17 @@
     filtering.set(newFiltering);
   }
 
-  function addFilter(columnId?: number) {
-    const column =
-      columnId === undefined
-        ? [...$processedColumns.values()][0]
-        : $processedColumns.get(columnId);
-    if (!column) {
+  function addFilter() {
+    const firstColumn = [...$processedColumns.values()][0];
+    if (!firstColumn) {
       return;
     }
-    const firstCondition = [...column.allowedFiltersMap.values()][0];
+    const firstCondition = [...firstColumn.allowedFiltersMap.values()][0];
     if (!firstCondition) {
       return;
     }
     const newFilter = {
-      columnId: column.id,
+      columnId: firstColumn.column.id,
       conditionId: firstCondition.id,
       value: undefined,
       isValid: validateFilterEntry(firstCondition, undefined),
@@ -88,31 +77,9 @@
   function updateFilter() {
     checkAndSetExternalFiltering();
   }
-
-  function activateLastFilterInput() {
-    const lastFilterInput = takeLast(
-      element.querySelectorAll<HTMLElement | LinkedRecordInputElement>(
-        `.${FILTER_INPUT_CLASS}`,
-      ),
-    );
-    if (lastFilterInput) {
-      if ('launchRecordSelector' in lastFilterInput) {
-        void lastFilterInput.launchRecordSelector();
-      } else {
-        lastFilterInput.focus();
-      }
-    }
-  }
-
-  onMount(() => imperativeFilterController?.onAddFilter(addFilter));
-  onMount(() =>
-    imperativeFilterController?.onActivateLastFilterInput(
-      activateLastFilterInput,
-    ),
-  );
 </script>
 
-<div class="filters" class:filtered={filterCount} bind:this={element}>
+<div class="filters" class:filtered={filterCount}>
   <div class="header">Filter records</div>
   <div class="content">
     {#if filterCount}
@@ -129,7 +96,7 @@
   </div>
   {#if $processedColumns.size}
     <div class="footer">
-      <Button appearance="secondary" on:click={() => addFilter()}>
+      <Button appearance="secondary" on:click={addFilter}>
         <Icon {...iconAddNew} />
         <span>Add New Filter</span>
       </Button>

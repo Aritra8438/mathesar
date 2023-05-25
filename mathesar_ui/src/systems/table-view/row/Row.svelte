@@ -108,7 +108,7 @@
             hasErrors={hasAnyErrors}
           />
           <ContextMenu>
-            <RowContextOptions recordPk={rowKey} {recordsData} {row} />
+            <RowContextOptions recordId={Number(rowKey)} {recordsData} {row} />
           </ContextMenu>
         {/if}
       </div>
@@ -136,7 +136,6 @@
           bind:value={row.record[columnId]}
           {processedColumn}
           {recordsData}
-          {rowKey}
         />
       {/each}
     {/if}
@@ -145,9 +144,6 @@
 
 <style lang="scss">
   .row {
-    user-select: none;
-    -webkit-user-select: none;
-
     &.processing {
       pointer-events: none;
     }

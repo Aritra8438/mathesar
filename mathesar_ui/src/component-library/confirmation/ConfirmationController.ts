@@ -40,8 +40,6 @@ export class ConfirmationController {
 
   resolve = writable<(isConfirmed: boolean) => void>(() => {});
 
-  canProceed = writable(true);
-
   constructor(
     modalController: ModalController,
     initialConfirmationProps: ConfirmationProps,
@@ -74,7 +72,6 @@ export function makeConfirm({
   async function confirm(props: Partial<ConfirmationProps>) {
     return new Promise<boolean>((resolve) => {
       controller.resolve.set(resolve);
-      controller.canProceed.set(true);
       controller.confirmationProps.set({
         ...fullDefaultConfirmationProps,
         ...props,

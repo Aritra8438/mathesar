@@ -6,18 +6,17 @@
   import type { LinksPostRequest } from '@mathesar/api/types/links';
   import type { TableEntry } from '@mathesar/api/types/tables';
   import { postAPI } from '@mathesar/api/utils/requestUtils';
-  import SelectTable from '@mathesar/components/SelectTable.svelte';
   import {
-    Field,
-    FieldLayout,
-    FormSubmit,
     comboInvalidIf,
+    Field,
     makeForm,
     requiredField,
-    type FilledFormValues,
   } from '@mathesar/components/form';
+  import FieldLayout from '@mathesar/components/form/FieldLayout.svelte';
+  import FormSubmitWithCatch from '@mathesar/components/form/FormSubmitWithCatch.svelte';
   import InfoBox from '@mathesar/components/message-boxes/InfoBox.svelte';
   import OutcomeBox from '@mathesar/components/message-boxes/OutcomeBox.svelte';
+  import SelectTable from '@mathesar/components/SelectTable.svelte';
   import { iconTableLink } from '@mathesar/icons';
   import { currentSchemaId } from '@mathesar/stores/schemas';
   import {
@@ -25,8 +24,8 @@
     getTabularDataStoreFromContext,
   } from '@mathesar/stores/table-data';
   import {
-    importVerifiedTables as importVerifiedTablesStore,
     refetchTablesForSchema,
+    importVerifiedTables as importVerifiedTablesStore,
     tables as tablesDataStore,
     validateNewTableName,
   } from '@mathesar/stores/tables';
@@ -39,13 +38,13 @@
   import { makeSingular } from '@mathesar/utils/languageUtils';
   import { assertExhaustive } from '@mathesar/utils/typeUtils';
   import Pill from './LinkTablePill.svelte';
-  import NewColumn from './NewColumn.svelte';
-  import SelectLinkType from './SelectLinkType.svelte';
   import {
     columnNameIsNotId,
     suggestMappingTableName,
     type LinkType,
   } from './linkTableUtils';
+  import NewColumn from './NewColumn.svelte';
+  import SelectLinkType from './SelectLinkType.svelte';
 
   const tabularData = getTabularDataStoreFromContext();
 
@@ -156,13 +155,14 @@
   // Saving
   // ===========================================================================
 
-  function getRequestBody(
-    values: FilledFormValues<typeof form>,
-  ): LinksPostRequest {
+  function getRequestBody(): LinksPostRequest {
+    if (!target) {
+      throw new Error('Unable to determine target table id.');
+    }
     if ($linkType === 'oneToMany') {
       return {
         link_type: 'one-to-many',
-        reference_table: values.targetTable.id,
+        reference_table: target.id,
         reference_column_name: $columnNameInTarget,
         referent_table: base.id,
       };
@@ -172,7 +172,7 @@
         link_type: 'one-to-many',
         reference_table: base.id,
         reference_column_name: $columnNameInBase,
-        referent_table: values.targetTable.id,
+        referent_table: target.id,
       };
     }
     if ($linkType === 'manyToMany') {
@@ -185,7 +185,7 @@
             column_name: $columnNameMappingToBase,
           },
           {
-            referent_table: values.targetTable.id,
+            referent_table: target.id,
             column_name: $columnNameMappingToTarget,
           },
         ],
@@ -208,8 +208,8 @@
     }
   }
 
-  async function handleSave(values: FilledFormValues<typeof form>) {
-    await postAPI('/api/db/v0/links/', getRequestBody(values));
+  async function handleSave() {
+    await postAPI('/api/db/v0/links/', getRequestBody());
     toast.success('The link has been created successfully');
     await reFetchOtherThingsThatChanged();
     close();
@@ -298,9 +298,8 @@
 </div>
 
 <div use:portalToWindowFooter>
-  <FormSubmit
+  <FormSubmitWithCatch
     {form}
-    catchErrors
     {canProceed}
     onCancel={close}
     proceedButton={{ label: 'Create Link', icon: iconTableLink }}

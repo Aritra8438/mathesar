@@ -12,7 +12,7 @@ import { getErrorMessage } from '@mathesar/utils/errors';
  * the [API error response schema][1], except that here we're using `undefined`
  * where the response schema uses `null`.
  *
- * [1]: ../../../../mathesar/api/STANDARDS.md
+ * [1]: https://wiki.mathesar.org/en/engineering/standards/api
  */
 interface ApiErrorData {
   message: string;

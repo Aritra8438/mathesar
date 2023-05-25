@@ -173,7 +173,7 @@
             {#if isSaved}
               <DropdownMenu
                 triggerAppearance="primary"
-                placements={['bottom-end']}
+                placement="bottom-end"
                 closeOnInnerClick={true}
                 icon={{
                   ...iconExpandDown,

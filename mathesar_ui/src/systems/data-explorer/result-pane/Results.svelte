@@ -1,34 +1,27 @@
 <script lang="ts">
-  import { get } from 'svelte/store';
-
   import { ImmutableMap } from '@mathesar-component-library';
-  import CellBackground from '@mathesar/components/CellBackground.svelte';
-  import PaginationGroup from '@mathesar/components/PaginationGroup.svelte';
   import {
-    isColumnSelected,
     Sheet,
-    SheetCell,
     SheetHeader,
-    SheetRow,
     SheetVirtualRows,
+    SheetRow,
+    SheetCell,
+    isColumnSelected,
   } from '@mathesar/components/sheet';
-  import { SheetClipboardHandler } from '@mathesar/components/sheet/SheetClipboardHandler';
+  import PaginationGroup from '@mathesar/components/PaginationGroup.svelte';
+  import CellBackground from '@mathesar/components/CellBackground.svelte';
   import { rowHeaderWidthPx, rowHeightPx } from '@mathesar/geometry';
-  import { toast } from '@mathesar/stores/toast';
-  import type QueryManager from '../QueryManager';
   import type QueryRunner from '../QueryRunner';
-  import QueryRefreshButton from './QueryRefreshButton.svelte';
-  import QueryRunErrors from './QueryRunErrors.svelte';
+  import type QueryManager from '../QueryManager';
   import ResultHeaderCell from './ResultHeaderCell.svelte';
   import ResultRowCell from './ResultRowCell.svelte';
+  import QueryRefreshButton from './QueryRefreshButton.svelte';
+  import QueryRunErrors from './QueryRunErrors.svelte';
 
   export let queryHandler: QueryRunner | QueryManager;
   export let isExplorationPage = false;
 
   const ID_ROW_CONTROL_COLUMN = 'row-control';
-  const columnWidths = new ImmutableMap([
-    [ID_ROW_CONTROL_COLUMN, rowHeaderWidthPx],
-  ]);
 
   $: ({
     query,
@@ -40,14 +33,8 @@
     inspector,
   } = queryHandler);
   $: ({ initial_columns } = $query);
-  $: clipboardHandler = new SheetClipboardHandler({
-    selection,
-    toast,
-    getRows: () => get(rowsData).rows,
-    getColumnsMap: () => get(processedColumns),
-    getRecordSummaries: () => new ImmutableMap(),
-  });
   $: ({ selectedCells, columnsSelectedWhenTheTableIsEmpty } = selection);
+
   $: recordRunState = $runState?.state;
   $: errors = $runState?.state === 'failure' ? $runState.errors : undefined;
   $: columnList = [...$processedColumns.values()];
@@ -61,6 +48,10 @@
     (recordRunState === 'success' || recordRunState === 'processing') &&
     !rows.length;
   $: sheetItemCount = showDummyGhostRow ? 1 : rows.length;
+
+  const columnWidths = new ImmutableMap([
+    [ID_ROW_CONTROL_COLUMN, rowHeaderWidthPx],
+  ]);
 </script>
 
 <div data-identifier="query-run-result">
@@ -78,7 +69,6 @@
       columns={sheetColumns}
       getColumnIdentifier={(c) => c.id}
       {columnWidths}
-      {clipboardHandler}
       usesVirtualList
     >
       <SheetHeader>
@@ -175,9 +165,10 @@
 
 <style lang="scss">
   [data-identifier='query-run-result'] {
-    height: 100%;
     position: relative;
+    flex-grow: 1;
     overflow: hidden;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     --status-bar-height: 3rem;

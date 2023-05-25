@@ -30,7 +30,6 @@
     'right-start',
     'left-start',
   ];
-  export let preferredPlacement: Placement | undefined = undefined;
   export let isOpen = false;
   export let classes = '';
   export { classes as class };
@@ -40,9 +39,9 @@
 
   let contentElement: HTMLElement | undefined;
 
-  $: placement = preferredPlacement ?? placements[0] ?? 'bottom-start';
+  $: placement = placements[0] ?? 'bottom-start';
   $: fallbackPlacements = (() => {
-    const p = placements.filter((pm) => pm !== placement);
+    const p = placements.slice(1);
     if (p.length === 0) {
       // If we didn't get any fallback placements, we want to send `undefined`
       // to popper so that popper uses its default fallback placements.
@@ -130,8 +129,6 @@
       references: clickOffBoundsReferences,
     }}
     on:click={checkAndCloseOnInnerClick}
-    on:mouseenter
-    on:mouseleave
   >
     {#if $$slots.default}
       <slot {close} />

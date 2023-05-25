@@ -1,1 +1,1 @@
-<div class="menu-heading" {...$$restProps}><slot /></div>
+<div class="menu-heading"><slot /></div>

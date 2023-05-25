@@ -1,6 +1,4 @@
-# Mathesar component library
-
-This directory contains the components and design system used by the Mathesar front end. This will be spun off into a package of it's own at a later point in time.
+This directory contains the components and design system used by MathesarUI. This will be spun off into a package of it's own at a later point in time.
 
 ## Dev guidelines
 

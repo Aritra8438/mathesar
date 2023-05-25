@@ -47,9 +47,7 @@
     return allowedColumns;
   }
 
-  function getColumnConstraintTypeFromColumnId(
-    _columnId?: ColumnLikeType['id'],
-  ) {
+  function getColumnConstraintTypeByColumnId(_columnId?: ColumnLikeType['id']) {
     if (_columnId) {
       const column = columns.get(_columnId);
       if (column) {
@@ -120,7 +118,7 @@
         type: columnInfo?.column.type ?? 'unknown',
         type_options: columnInfo?.column.type_options ?? null,
         display_options: columnInfo?.column.display_options ?? null,
-        constraintsType: getColumnConstraintTypeFromColumnId(option),
+        constraintsType: getColumnConstraintTypeByColumnId(option),
       }}
     />
   </Select>

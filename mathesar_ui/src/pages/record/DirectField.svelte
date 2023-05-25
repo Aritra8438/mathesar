@@ -55,9 +55,8 @@
   $: ({ recordSummaries } = record);
   $: ({ column, abstractType } = processedColumn);
   $: value = $field;
-  $: fieldIsDisabled = field.disabled;
   $: ({ showsError } = field);
-  $: disabled = column.primary_key || !canEditTableRecords || $fieldIsDisabled;
+  $: disabled = column.primary_key || !canEditTableRecords;
   $: shouldDisplayNullOverlay = !cellDataTypesThatUsePlaceholderText.has(
     abstractType.cellInfo.type,
   );

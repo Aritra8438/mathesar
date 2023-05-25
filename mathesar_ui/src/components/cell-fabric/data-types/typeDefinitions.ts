@@ -25,7 +25,7 @@ export type CellColumnLike = Pick<
   'type' | 'type_options' | 'display_options'
 >;
 
-export interface CellComponentFactory {
+export interface CellComponentFactory<T = never> {
   initialInputValue?: unknown;
   get(
     column: CellColumnLike,
@@ -35,8 +35,8 @@ export interface CellComponentFactory {
     column: CellColumnLike,
     config?: Record<string, unknown>,
   ): ComponentAndProps;
-  getDisplayFormatter(
+  getDisplayFormatter?(
     column: CellColumnLike,
     config?: Record<string, unknown>,
-  ): CellValueFormatter<unknown>;
+  ): CellValueFormatter<T>;
 }

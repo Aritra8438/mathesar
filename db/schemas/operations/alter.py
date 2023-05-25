@@ -1,44 +1,41 @@
-from db.connection import execute_msar_func_with_engine
+from sqlalchemy import text
+from sqlalchemy.schema import DDLElement
+from sqlalchemy.ext import compiler
+
 
 SUPPORTED_SCHEMA_ALTER_ARGS = {'name', 'description'}
 
 
-def rename_schema(schema_name, engine, rename_to):
-    """
-    Rename an existing schema.
+class RenameSchema(DDLElement):
+    def __init__(self, schema, rename_to):
+        self.schema = schema
+        self.rename_to = rename_to
 
-    Args:
-        schema_name: Name of the schema to change.
-        engine: SQLAlchemy engine object for connecting.
-        rename_to: New schema name.
 
-    Returns:
-        Returns a string giving the command that was run.
+@compiler.compiles(RenameSchema)
+def compile_rename_schema(element, compiler, **_):
+    return 'ALTER SCHEMA "%s" RENAME TO "%s"' % (
+        element.schema,
+        element.rename_to
+    )
+
+
+def rename_schema(schema, engine, rename_to):
     """
-    if rename_to == schema_name:
+    This method renames a Postgres schema.
+    """
+    if rename_to == schema:
         return
-    return execute_msar_func_with_engine(
-        engine, 'rename_schema', schema_name, rename_to
-    ).fetchone()[0]
+    with engine.begin() as connection:
+        connection.execute(RenameSchema(schema, rename_to))
 
 
-def comment_on_schema(schema_name, engine, comment):
-    """
-    Change description of a schema.
-
-    Args:
-        schema_name: The name of the schema whose comment we will
-                     change.
-        comment: The new comment. Any quotes or special characters must
-                 be escaped.
-        engine: SQLAlchemy engine object for connecting.
-
-    Returns:
-        Returns a string giving the command that was run.
-    """
-    return execute_msar_func_with_engine(
-        engine, 'comment_on_schema', schema_name, comment
-    ).fetchone()[0]
+def comment_on_schema(schema, engine, comment):
+    # Not using the DDLElement since the examples from the docs are
+    # vulnerable to SQL injection attacks.
+    comment_command = text(f'COMMENT ON SCHEMA "{schema}" IS :c')
+    with engine.begin() as conn:
+        conn.execute(comment_command, {'c': comment})
 
 
 def alter_schema(name, engine, update_data):

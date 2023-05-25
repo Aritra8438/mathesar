@@ -4,7 +4,6 @@
   import NameWithIcon from './NameWithIcon.svelte';
 
   export let database: Database;
-  export let iconHasBox = false;
 </script>
 
-<NameWithIcon icon={iconDatabase} {iconHasBox}>{database.name}</NameWithIcon>
+<NameWithIcon icon={iconDatabase}>{database.name}</NameWithIcon>

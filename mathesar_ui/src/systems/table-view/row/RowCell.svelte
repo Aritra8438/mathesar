@@ -1,42 +1,37 @@
 <script lang="ts">
   import { tick } from 'svelte';
-
   import {
-    ButtonMenuItem,
     ContextMenu,
+    ButtonMenuItem,
     LinkMenuItem,
     WritableMap,
-    MenuDivider,
-    MenuHeading,
   } from '@mathesar-component-library';
-  import type { RequestStatus } from '@mathesar/api/utils/requestUtils';
-  import { States } from '@mathesar/api/utils/requestUtils';
-  import CellFabric from '@mathesar/components/cell-fabric/CellFabric.svelte';
-  import CellBackground from '@mathesar/components/CellBackground.svelte';
-  import Null from '@mathesar/components/Null.svelte';
-  import RowCellBackgrounds from '@mathesar/components/RowCellBackgrounds.svelte';
-  import {
-    isCellActive,
-    isCellSelected,
-    scrollBasedOnActiveCell,
-    SheetCell,
-  } from '@mathesar/components/sheet';
-  import { iconLinkToRecordPage, iconSetToNull } from '@mathesar/icons';
-  import { currentDatabase } from '@mathesar/stores/databases';
-  import { currentSchema } from '@mathesar/stores/schemas';
-  import { storeToGetRecordPageUrl } from '@mathesar/stores/storeBasedUrls';
   import {
     rowHasNewRecord,
-    type CellKey,
-    type ProcessedColumn,
     type RecordRow,
     type RecordsData,
+    type CellKey,
+    type ProcessedColumn,
     type TabularDataSelection,
   } from '@mathesar/stores/table-data';
+  import {
+    isCellActive,
+    scrollBasedOnActiveCell,
+    isCellSelected,
+  } from '@mathesar/components/sheet';
+  import CellFabric from '@mathesar/components/cell-fabric/CellFabric.svelte';
+  import Null from '@mathesar/components/Null.svelte';
+  import type { RequestStatus } from '@mathesar/api/utils/requestUtils';
+  import { States } from '@mathesar/api/utils/requestUtils';
+  import { SheetCell } from '@mathesar/components/sheet';
+  import { iconLinkToRecordPage, iconSetToNull } from '@mathesar/icons';
+  import { storeToGetRecordPageUrl } from '@mathesar/stores/storeBasedUrls';
+  import CellBackground from '@mathesar/components/CellBackground.svelte';
+  import RowCellBackgrounds from '@mathesar/components/RowCellBackgrounds.svelte';
   import { getUserProfileStoreFromContext } from '@mathesar/stores/userProfile';
+  import { currentDatabase } from '@mathesar/stores/databases';
+  import { currentSchema } from '@mathesar/stores/schemas';
   import CellErrors from './CellErrors.svelte';
-  import ColumnHeaderContextMenu from '../header/header-cell/ColumnHeaderContextMenu.svelte';
-  import RowContextOptions from './RowContextOptions.svelte';
 
   export let recordsData: RecordsData;
   export let selection: TabularDataSelection;
@@ -47,7 +42,6 @@
   export let processedColumn: ProcessedColumn;
   export let clientSideErrorMap: WritableMap<CellKey, string[]>;
   export let value: unknown = undefined;
-  export let rowKey: string;
 
   const userProfile = getUserProfileStoreFromContext();
 
@@ -57,6 +51,7 @@
     { database, schema },
     'canEditTableRecords',
   );
+
   $: recordsDataState = recordsData.state;
   $: ({ recordSummaries } = recordsData);
   $: ({ column, linkFk } = processedColumn);
@@ -112,6 +107,7 @@
     if (type) {
       originalEvent.stopPropagation();
       originalEvent.preventDefault();
+
       await checkTypeAndScroll(type);
     }
   }
@@ -188,7 +184,6 @@
       }}
     />
     <ContextMenu>
-      <MenuHeading>Cell</MenuHeading>
       <ButtonMenuItem
         icon={iconSetToNull}
         disabled={!canSetNull}
@@ -201,16 +196,6 @@
           Go To Linked Record
         </LinkMenuItem>
       {/if}
-      <MenuDivider />
-
-      <!-- Column Attributes -->
-      <MenuHeading>Column</MenuHeading>
-      <ColumnHeaderContextMenu {processedColumn} />
-      <MenuDivider />
-
-      <!-- Row -->
-      <MenuHeading>Row</MenuHeading>
-      <RowContextOptions recordPk={rowKey} {recordsData} {row} />
     </ContextMenu>
     {#if errors.length}
       <CellErrors {errors} forceShowErrors={isActive} />
@@ -221,14 +206,15 @@
 <style lang="scss">
   .editable-cell.cell {
     user-select: none;
-    -webkit-user-select: none; /* Safari */
     background: var(--cell-bg-color-base);
+
     &.is-active {
       z-index: var(--z-index__sheet__active-cell);
       border-color: transparent;
       min-height: 100%;
       height: auto !important;
     }
+
     &.error,
     &.is-processing {
       color: var(--cell-text-color-processing);

@@ -18,11 +18,7 @@ export function makeTitleCase(text: string): string {
   return text.split(' ').map(makeSentenceCase).join(' ');
 }
 
-export type Countable =
-  | number
-  | Array<unknown>
-  | { size: number }
-  | Iterable<unknown>;
+type Countable = number | Array<unknown> | { size: number } | Iterable<unknown>;
 
 function getCount(countable: Countable): number {
   if (typeof countable === 'number') {
@@ -88,18 +84,15 @@ function makePluralFormsFromEnglish(one: string, many: string): PluralForms {
 }
 
 const wordMap = {
-  cells: makePluralFormsFromEnglish('cell', 'cells'),
-  columns: makePluralFormsFromEnglish('column', 'columns'),
-  explorations: makePluralFormsFromEnglish('exploration', 'explorations'),
-  filters: makePluralFormsFromEnglish('filter', 'filters'),
-  matches: makePluralFormsFromEnglish('match', 'matches'),
-  records: makePluralFormsFromEnglish('record', 'records'),
-  rows: makePluralFormsFromEnglish('row', 'rows'),
-  results: makePluralFormsFromEnglish('result', 'results'),
   schemas: makePluralFormsFromEnglish('schema', 'schemas'),
   tables: makePluralFormsFromEnglish('table', 'tables'),
-  times: makePluralFormsFromEnglish('time', 'times'),
+  explorations: makePluralFormsFromEnglish('exploration', 'explorations'),
+  columns: makePluralFormsFromEnglish('column', 'columns'),
+  records: makePluralFormsFromEnglish('record', 'records'),
+  matches: makePluralFormsFromEnglish('match', 'matches'),
+  results: makePluralFormsFromEnglish('result', 'results'),
   values: makePluralFormsFromEnglish('value', 'values'),
+  times: makePluralFormsFromEnglish('time', 'times'),
 } as const;
 
 type Word = keyof typeof wordMap;

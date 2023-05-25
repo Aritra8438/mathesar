@@ -80,8 +80,7 @@
 <LayoutWithHeader
   restrictWidth
   cssVariables={{
-    '--page-padding': 'var(--inset-page-padding)',
-    '--max-layout-width': 'var(--max-layout-width-data-pages)',
+    '--max-layout-width': '67.357rem',
     '--layout-background-color': 'var(--sand-200)',
   }}
 >
@@ -158,6 +157,10 @@
 </LayoutWithHeader>
 
 <style lang="scss">
+  h1 {
+    margin: 0.83em 0;
+  }
+
   .import-file-view {
     padding: var(--size-xx-large);
     border: 1px solid var(--slate-300);

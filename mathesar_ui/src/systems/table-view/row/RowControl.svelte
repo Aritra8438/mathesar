@@ -64,6 +64,5 @@
     * multi-row selection
     */
     user-select: none;
-    -webkit-user-select: none; /* Safari */
   }
 </style>
